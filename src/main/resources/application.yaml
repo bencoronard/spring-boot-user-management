@@ -1,3 +1,86 @@
+server:
+  port: "${APP_LISTEN_PORT:8080}"
+
 spring:
   application:
     name: user-management
+  profiles:
+    active: "${APP_ENVIRONMENT:local}"
+  threads:
+    virtual:
+      enabled: true
+  sql:
+    init:
+      mode: never
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  data:
+    web:
+      pageable:
+        max-page-size: "${USER_MGMT_PAGINATION_MAX_SIZE}"
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;
+    username: sa
+    password:
+    hikari:
+      pool-name: UrlShortenerHikariCP
+      maximum-pool-size: "${USER_MGMT_DB_CP_CAP}"
+      minimum-idle: "${USER_MGMT_DB_CP_IDLE_MIN}"
+      idle-timeout: "${USER_MGMT_DB_CP_IDLE_TIMEOUT}"
+      connection-timeout: "${USER_MGMT_DB_CP_CONN_TIMEOUT}"
+      max-lifetime: "${USER_MGMT_DB_CP_CONN_TTL}"
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - health
+        - info
+        - metrics
+  info:
+    env:
+      enabled: true
+  otlp:
+    metrics:
+      export:
+        url: "${OTLP_METRICS_ENDPOINT}"
+        step: "${METRICS_SAMPLING_FREQ_IN_MIN}"
+  tracing:
+    sampling:
+      probability: "${TRACES_SAMPLING_PROBABILITY}"
+  zipkin:
+    tracing:
+      export:
+        enabled: true
+      endpoint: "${ZIPKIN_TRACES_ENDPOINT}"
+
+---
+# Environment: LOCAL
+spring:
+  config:
+    activate:
+      on-profile: local
+  jpa:
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  zipkin:
+    tracing:
+      export:
+        enabled: false
+
+---
+# Environment: TEST
+spring:
+  config:
+    activate:
+      on-profile: test
