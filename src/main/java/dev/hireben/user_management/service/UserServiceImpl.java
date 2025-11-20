@@ -48,9 +48,16 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional
   public void updateUser(Long id, UserDTO dto) {
-    userRepository.findById(id)
+    User user = userRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
 
+    user.setName(dto.name());
+    user.setUsername(dto.username());
+    user.setEmail(dto.email());
+    user.setPhone(dto.phone());
+    user.setWebsite(dto.website());
+
+    userRepository.save(user);
   }
 
   @Override
